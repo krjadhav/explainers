@@ -1,0 +1,49 @@
+name: Update Manifest
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - manifest.json  # prevent infinite loop when bot commits
+
+permissions:
+  contents: write
+
+jobs:
+  update-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate manifest.json
+        run: |
+          python3 << 'EOF'
+          import json, glob, os
+
+          entries = []
+          for meta_path in sorted(glob.glob('*/meta.json')):
+              folder = os.path.dirname(meta_path)
+              with open(meta_path) as f:
+                  meta = json.load(f)
+              meta['path'] = folder
+              entries.append(meta)
+
+          with open('manifest.json', 'w') as f:
+              json.dump(entries, f, indent=2)
+
+          print(f'Manifest updated: {len(entries)} explainer(s)')
+          for e in entries:
+              print(f"  - {e['path']}: {e['title']}")
+          EOF
+
+      - name: Commit manifest
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add manifest.json
+          if ! git diff --staged --quiet; then
+            git commit -m 'chore: auto-update manifest.json'
+            git push
+          else
+            echo 'manifest.json unchanged, skipping commit'
+          fi

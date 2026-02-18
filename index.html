@@ -7,50 +7,171 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      background: #0a0a0f; color: #e8e6f0;
+      background: #0a0a0f;
+      color: #e8e6f0;
       font-family: 'DM Sans', 'Helvetica Neue', sans-serif;
-      min-height: 100vh; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; padding: 40px 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
     }
-    .label {
+
+    .eyebrow {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 11px; font-weight: 700; letter-spacing: 0.15em;
-      text-transform: uppercase; color: #f97316; margin-bottom: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #f97316;
+      margin-bottom: 16px;
     }
+
     h1 {
-      font-family: 'Syne', sans-serif; font-size: clamp(28px, 5vw, 42px);
-      font-weight: 800; letter-spacing: -0.03em; margin-bottom: 12px;
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 10px;
       background: linear-gradient(135deg, #e8e6f0 0%, #f97316 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
-    .subtitle { font-size: 15px; color: #8a8899; margin-bottom: 48px; }
-    .grid { display: grid; gap: 16px; width: 100%; max-width: 560px; }
-    a.card {
-      display: block; background: #111118; border: 1px solid #2a2a3a;
-      border-radius: 12px; padding: 20px 24px; text-decoration: none;
-      transition: border-color 0.15s, background 0.15s;
+
+    .subtitle {
+      font-size: 15px;
+      color: #8a8899;
+      margin-bottom: 48px;
+      line-height: 1.6;
+      text-align: center;
+      max-width: 420px;
     }
-    a.card:hover { border-color: #f97316; background: #1a1a24; }
-    .card-title { font-size: 16px; font-weight: 700; color: #e8e6f0; margin-bottom: 4px; }
-    .card-desc { font-size: 13px; color: #5a5870; }
-    .card-tag {
-      font-family: 'JetBrains Mono', monospace; font-size: 10px;
-      color: #f97316; text-transform: uppercase; letter-spacing: 0.08em;
-      margin-bottom: 8px;
+
+    #grid {
+      display: grid;
+      gap: 14px;
+      width: 100%;
+      max-width: 600px;
     }
+
+    .card {
+      display: block;
+      background: #111118;
+      border: 1px solid #2a2a3a;
+      border-radius: 12px;
+      padding: 22px 24px;
+      text-decoration: none;
+      transition: border-color 0.15s, background 0.15s, transform 0.15s;
+    }
+
+    .card:hover {
+      border-color: #f97316;
+      background: #1a1a24;
+      transform: translateY(-1px);
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #e8e6f0;
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: #5a5870;
+      line-height: 1.6;
+    }
+
+    .loading, .error {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #5a5870;
+    }
+
+    .error { color: #ef4444; }
   </style>
 </head>
 <body>
-  <div class="label">Interactive Explainers</div>
+  <div class="eyebrow">Interactive Explainers</div>
   <h1>Explainers</h1>
   <p class="subtitle">Walkthroughs of complex ideas — with live simulations.</p>
-  <div class="grid">
-    <a class="card" href="./venture-bets/">
-      <div class="card-tag">Venture / Finance</div>
-      <div class="card-title">Why You Need 50–100 Bets to Make Money in Venture</div>
-      <div class="card-desc">The power-law math behind venture portfolio construction. Tweak every parameter and watch the simulation update live.</div>
-    </a>
-  </div>
+  <div id="grid"><div class="loading">Loading...</div></div>
+
+  <script>
+    const TAG_COLORS = [
+      { bg: '#f9731620', color: '#f97316' },  // orange
+      { bg: '#3b82f620', color: '#3b82f6' },  // blue
+      { bg: '#22c55e20', color: '#22c55e' },  // green
+      { bg: '#a855f720', color: '#a855f7' },  // purple
+      { bg: '#eab30820', color: '#eab308' },  // yellow
+      { bg: '#ec489920', color: '#ec4899' },  // pink
+    ];
+
+    // Deterministic color per tag name
+    function tagColor(name) {
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+      return TAG_COLORS[hash % TAG_COLORS.length];
+    }
+
+    function renderCard(entry) {
+      const a = document.createElement('a');
+      a.className = 'card';
+      a.href = `./${entry.path}/`;
+
+      const tags = (entry.tags || []).map(t => {
+        const c = tagColor(t);
+        return `<span class="tag" style="background:${c.bg};color:${c.color}">${t}</span>`;
+      }).join('');
+
+      a.innerHTML = `
+        <div class="tags">${tags}</div>
+        <div class="card-title">${entry.title}</div>
+        <div class="card-desc">${entry.description}</div>
+      `;
+      return a;
+    }
+
+    fetch('./manifest.json')
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then(entries => {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        if (!entries.length) {
+          grid.innerHTML = '<div class="loading">No explainers yet.</div>';
+          return;
+        }
+        entries.forEach(e => grid.appendChild(renderCard(e)));
+      })
+      .catch(err => {
+        document.getElementById('grid').innerHTML =
+          `<div class="error">Failed to load manifest: ${err.message}</div>`;
+      });
+  </script>
 </body>
 </html>
