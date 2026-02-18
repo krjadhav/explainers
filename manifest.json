@@ -1,8 +1,12 @@
 [
   {
-    "title": "Why You Need 50–100 Bets to Make Money in Venture",
+    "title": "Why You Need 50\u2013100 Bets to Make Money in Venture",
     "description": "The power-law math behind venture portfolio construction. Tweak every parameter and watch the simulation update live.",
-    "tags": ["Venture", "Finance", "Statistics"],
+    "tags": [
+      "Venture",
+      "Finance",
+      "Statistics"
+    ],
     "path": "venture-bets"
   }
 ]
