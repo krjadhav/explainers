@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>India SaaS Revenue Calculator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    h1 { font-size: 1.75rem; font-weight: 700; text-align: center; margin-bottom: 0.25rem; }
+    .subtitle { text-align: center; color: #94a3b8; margin-bottom: 2.5rem; font-size: 0.95rem; }
+
+    /* Goal input */
+    .goal-section {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .goal-section label {
+      font-size: 0.8rem; opacity: 0.85; text-transform: uppercase;
+      letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;
+    }
+    .goal-input-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .goal-input-wrap { position: relative; flex: 1; min-width: 160px; }
+    .goal-input-wrap .dollar-sign {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      font-size: 1.25rem; font-weight: 700; color: #e2e8f0; pointer-events: none;
+    }
+    .goal-input {
+      width: 100%; padding: 0.75rem 1rem 0.75rem 2rem; font-size: 1.25rem; font-weight: 700;
+      border: 2px solid rgba(255,255,255,0.2); border-radius: 8px;
+      background: rgba(255,255,255,0.1); color: #fff; outline: none; font-family: inherit;
+    }
+    .goal-input:focus { border-color: rgba(255,255,255,0.5); }
+    .goal-suffix { font-size: 1rem; font-weight: 600; white-space: nowrap; }
+    .goal-hint { font-size: 0.8rem; opacity: 0.75; margin-top: 0.5rem; }
+
+    /* Cost factors */
+    .factors {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .factors-header {
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; user-select: none;
+    }
+    .factors-header h2 { font-size: 1rem; font-weight: 600; }
+    .factors-toggle {
+      font-size: 0.8rem; color: #a78bfa; background: none; border: none;
+      cursor: pointer; font-family: inherit;
+    }
+    .factors-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem 2rem;
+      margin-top: 1.25rem;
+    }
+    .factor-item label {
+      display: block; font-size: 0.75rem; color: #94a3b8;
+      text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.35rem;
+    }
+    .factor-row { display: flex; align-items: center; gap: 0.5rem; }
+    .factor-input {
+      width: 72px; padding: 0.4rem 0.5rem; font-size: 0.95rem; font-weight: 600;
+      border: 1px solid #475569; border-radius: 6px; background: #0f172a;
+      color: #e2e8f0; outline: none; text-align: right; font-family: inherit;
+    }
+    .factor-input:focus { border-color: #8b5cf6; }
+    .factor-unit { font-size: 0.8rem; color: #64748b; }
+    .factor-note { font-size: 0.65rem; color: #475569; margin-top: 0.2rem; }
+
+    /* Waterfall */
+    .waterfall {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .waterfall h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
+
+    .wf-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.6rem 0; border-bottom: 1px solid #334155;
+      font-size: 0.9rem;
+    }
+    .wf-row:last-child { border-bottom: none; }
+    .wf-row .wf-label { color: #94a3b8; }
+    .wf-row .wf-label .wf-pct { color: #64748b; font-size: 0.8rem; }
+    .wf-row .wf-amount { font-weight: 600; }
+    .wf-row.wf-add .wf-amount { color: #f87171; }
+    .wf-row.wf-start .wf-amount { color: #34d399; }
+    .wf-row.wf-total {
+      border-top: 2px solid #6366f1; border-bottom: none;
+      padding-top: 0.75rem; margin-top: 0.25rem;
+    }
+    .wf-row.wf-total .wf-label { color: #e2e8f0; font-weight: 700; }
+    .wf-row.wf-total .wf-amount { color: #a78bfa; font-size: 1.1rem; font-weight: 700; }
+
+    /* Customer price section */
+    .customer-price {
+      background: linear-gradient(135deg, #1e1b4b, #312e81);
+      border: 1px solid #6366f1;
+      border-radius: 12px;
+      padding: 1.25rem 2rem;
+      margin-bottom: 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 0.5rem;
+    }
+    .customer-price .cp-label { font-size: 0.8rem; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.04em; }
+    .customer-price .cp-value { font-size: 1.5rem; font-weight: 700; color: #c4b5fd; }
+    .customer-price .cp-note { font-size: 0.75rem; color: #818cf8; }
+
+    /* Breakdown table */
+    .breakdown {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 2rem;
+    }
+    .table-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; }
+    .table-title em { color: #a78bfa; font-style: normal; }
+
+    .breakdown-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.9rem 0; border-bottom: 1px solid #334155;
+    }
+    .breakdown-row:last-child { border-bottom: none; }
+    .people { font-size: 1.05rem; color: #cbd5e1; }
+    .people strong { color: #fff; font-weight: 700; }
+    .charge { font-size: 1.05rem; font-weight: 700; color: #a78bfa; text-align: right; }
+
+    @media (max-width: 500px) {
+      .factors-grid { grid-template-columns: 1fr; }
+      .goal-input-row { flex-direction: column; }
+      .customer-price { flex-direction: column; text-align: center; }
+      .people, .charge { font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>India SaaS Revenue Calculator</h1>
+    <p class="subtitle">What you actually need to charge after taxes, fees & investor cuts</p>
+
+    <div class="goal-section">
+      <label>Your Monthly Take-Home Goal (as founder)</label>
+      <div class="goal-input-row">
+        <div class="goal-input-wrap">
+          <span class="dollar-sign">$</span>
+          <input type="text" class="goal-input" id="goal-input" value="10,000" inputmode="numeric">
+        </div>
+        <div class="goal-suffix">/ month</div>
+      </div>
+      <div class="goal-hint" id="goal-hint">This is what lands in your bank account</div>
+    </div>
+
+    <div class="factors">
+      <div class="factors-header" id="factors-toggle">
+        <h2>India Cost Factors</h2>
+        <button class="factors-toggle" id="toggle-btn">Adjust</button>
+      </div>
+      <div class="factors-grid" id="factors-grid">
+        <div class="factor-item">
+          <label>Personal Income Tax</label>
+          <div class="factor-row">
+            <input type="number" class="factor-input" id="f-income-tax" value="30" min="0" max="50">
+            <span class="factor-unit">%</span>
+          </div>
+          <div class="factor-note">New regime, 30% above ₹15L</div>
+        </div>
+        <div class="factor-item">
+          <label>Corporate Tax</label>
+          <div class="factor-row">
+            <input type="number" class="factor-input" id="f-corp-tax" value="25" min="0" max="40">
+            <span class="factor-unit">%</span>
+          </div>
+          <div class="factor-note">25.17% incl. cess for startups</div>
+        </div>
+        <div class="factor-item">
+          <label>GST on SaaS</label>
+          <div class="factor-row">
+            <input type="number" class="factor-input" id="f-gst" value="18" min="0" max="28">
+            <span class="factor-unit">%</span>
+          </div>
+          <div class="factor-note">18% for software/SaaS services</div>
+        </div>
+        <div class="factor-item">
+          <label>Payment Gateway</label>
+          <div class="factor-row">
+            <input type="number" class="factor-input" id="f-gateway" value="2" min="0" max="10" step="0.5">
+            <span class="factor-unit">%</span>
+          </div>
+          <div class="factor-note">Razorpay/Stripe India ~2%</div>
+        </div>
+        <div class="factor-item">
+          <label>Investor Equity</label>
+          <div class="factor-row">
+            <input type="number" class="factor-input" id="f-investor" value="20" min="0" max="80">
+            <span class="factor-unit">%</span>
+          </div>
+          <div class="factor-note">Typical seed: 15-25%</div>
+        </div>
+        <div class="factor-item">
+          <label>Monthly Overhead</label>
+          <div class="factor-row">
+            <span class="factor-unit" style="color:#94a3b8">$</span>
+            <input type="number" class="factor-input" id="f-overhead" value="1500" min="0" max="100000" step="100" style="width:80px">
+            <span class="factor-unit">/mo</span>
+          </div>
+          <div class="factor-note">Servers, tools, accounting, legal</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="waterfall">
+      <h2>Working backwards from your take-home</h2>
+      <div id="waterfall-rows"></div>
+    </div>
+
+    <div class="customer-price">
+      <div>
+        <div class="cp-label">Gross revenue needed</div>
+        <div class="cp-value" id="gross-monthly">$21,500/mo</div>
+      </div>
+      <div>
+        <div class="cp-label">That's</div>
+        <div class="cp-value" id="gross-annual">$258,000/yr</div>
+      </div>
+    </div>
+
+    <div class="breakdown">
+      <div class="table-title" id="table-title">How to make <em>$258,000</em> w/ subscriptions</div>
+      <div id="rows"></div>
+    </div>
+  </div>
+
+  <script>
+    const PEOPLE_TIERS = [50, 100, 250, 500, 1000, 2000, 5000, 10000, 25000, 50000];
+
+    const goalInput = document.getElementById('goal-input');
+    const goalHint = document.getElementById('goal-hint');
+    const factorsGrid = document.getElementById('factors-grid');
+    const toggleBtn = document.getElementById('toggle-btn');
+    const factorsToggle = document.getElementById('factors-toggle');
+    const waterfallRows = document.getElementById('waterfall-rows');
+    const grossMonthly = document.getElementById('gross-monthly');
+    const grossAnnual = document.getElementById('gross-annual');
+    const tableTitle = document.getElementById('table-title');
+    const rowsEl = document.getElementById('rows');
+
+    const inputs = {
+      incomeTax: document.getElementById('f-income-tax'),
+      corpTax: document.getElementById('f-corp-tax'),
+      gst: document.getElementById('f-gst'),
+      gateway: document.getElementById('f-gateway'),
+      investor: document.getElementById('f-investor'),
+      overhead: document.getElementById('f-overhead'),
+    };
+
+    let factorsOpen = true;
+
+    factorsToggle.addEventListener('click', () => {
+      factorsOpen = !factorsOpen;
+      factorsGrid.style.display = factorsOpen ? 'grid' : 'none';
+      toggleBtn.textContent = factorsOpen ? 'Hide' : 'Adjust';
+    });
+
+    function fmtFull(n) {
+      return '$' + Math.round(n).toLocaleString('en-US');
+    }
+
+    function fmtPrice(n) {
+      if (n >= 1) return '$' + Math.round(n).toLocaleString('en-US');
+      return '$' + n.toFixed(2);
+    }
+
+    function formatInputNumber(n) {
+      return n === 0 ? '' : n.toLocaleString('en-US');
+    }
+
+    function parseGoal() {
+      const raw = goalInput.value.replace(/[^0-9.]/g, '');
+      const val = parseFloat(raw);
+      return isNaN(val) || val <= 0 ? 0 : val;
+    }
+
+    function pct(id) {
+      return parseFloat(inputs[id].value) || 0;
+    }
+
+    function calculate() {
+      const takeHome = parseGoal();
+      const incomeTaxRate = pct('incomeTax') / 100;
+      const corpTaxRate = pct('corpTax') / 100;
+      const gstRate = pct('gst') / 100;
+      const gatewayRate = pct('gateway') / 100;
+      const investorPct = pct('investor') / 100;
+      const overhead = parseFloat(inputs.overhead.value) || 0;
+
+      // Step 1: Founder needs gross salary (pre personal income tax)
+      const grossSalary = takeHome / (1 - incomeTaxRate);
+      const personalTaxAmt = grossSalary - takeHome;
+
+      // Step 2: Company expenses = gross salary + overhead
+      const companyExpenses = grossSalary + overhead;
+
+      // Step 3: Company needs profit before corp tax to cover expenses
+      // profit_after_tax = revenue_net - expenses → we need revenue_net
+      // But founder salary IS an expense, so:
+      // Company revenue (after gateway, before GST remittance) needs to cover:
+      //   - Founder salary (gross)
+      //   - Overhead
+      //   - Corporate tax on PROFIT (revenue - expenses)
+      //
+      // If founder takes salary = grossSalary, that's a business expense (not profit).
+      // Profit = NetRevenue - grossSalary - overhead
+      // CorpTax = corpTaxRate * Profit
+      // AfterTaxProfit = Profit * (1 - corpTaxRate)
+      //
+      // But if investor owns X%, founder only gets (1-X)% of after-tax profit.
+      // Founder's total = grossSalary + (1-investorPct) * afterTaxProfit
+      // We want founder's total = grossSalary (just salary, no profit distribution for simplicity)
+      // OR: we treat it as the company needs to generate enough that founder's SHARE covers their salary.
+      //
+      // Simpler model: Revenue needs to cover all costs, and investor owns a share of the company,
+      // meaning the company needs to earn proportionally more.
+      //
+      // Let's think of it as: the business "costs" are:
+      //   grossSalary + overhead = companyExpenses
+      // The company needs revenue (pre-corp-tax) such that after corp tax, it covers expenses.
+      // Wait, expenses are deducted before corp tax. Corp tax is on profit only.
+      //
+      // Revenue - Expenses = Profit
+      // Corp Tax = Profit * corpTaxRate
+      // Net Profit = Profit * (1 - corpTaxRate)
+      //
+      // If there are investors, they own investorPct of the company. In practice this means
+      // the company needs investorPct more revenue to give founder the same outcome.
+      // (Simplified: founder owns (1-investorPct) of the company)
+      //
+      // So the company's required net revenue (what the company keeps after gateway fees, before GST):
+      // netRevenue = companyExpenses / (1 - investorPct)
+      // (Because founder only benefits from their share)
+
+      // Revenue the company needs (net of gateway, GST already separated)
+      const revenueNeeded = companyExpenses / (1 - investorPct);
+      const investorAmt = revenueNeeded - companyExpenses;
+
+      // Now add corporate tax: company needs more revenue to pay corp tax on profit
+      // Profit = revenue - expenses (expenses = companyExpenses)
+      // We need: revenue - corpTax(revenue - companyExpenses) >= revenueNeeded
+      // revenue - corpTaxRate*(revenue - companyExpenses) = revenueNeeded
+      // revenue*(1-corpTaxRate) + corpTaxRate*companyExpenses = revenueNeeded
+      // revenue = (revenueNeeded - corpTaxRate*companyExpenses) / (1-corpTaxRate)
+      const revenuePreCorpTax = (revenueNeeded - corpTaxRate * companyExpenses) / (1 - corpTaxRate);
+      const corpTaxAmt = (revenuePreCorpTax - companyExpenses) * corpTaxRate;
+
+      // Add gateway fee: customer payment * (1 - gatewayRate) = revenuePreCorpTax (excl GST)
+      const revenuePreGateway = revenuePreCorpTax / (1 - gatewayRate);
+      const gatewayAmt = revenuePreGateway - revenuePreCorpTax;
+
+      // Add GST on top: customer pays revenuePreGateway * (1 + gstRate)
+      const gstAmt = revenuePreGateway * gstRate;
+      const grossRevenue = revenuePreGateway + gstAmt;
+
+      // The "listed price" (what you charge, ex-GST) = revenuePreGateway
+      // The gross (what customer pays incl GST) = grossRevenue
+
+      return {
+        takeHome,
+        personalTaxAmt,
+        grossSalary,
+        overhead,
+        companyExpenses,
+        investorAmt,
+        revenueNeeded,
+        corpTaxAmt,
+        revenuePreCorpTax,
+        gatewayAmt,
+        revenuePreGateway,
+        gstAmt,
+        grossRevenue,
+        // For the table, use the listed price (what you set as price, customer pays this + GST)
+        annualRevenue: revenuePreGateway * 12,
+      };
+    }
+
+    function update() {
+      const c = calculate();
+
+      goalHint.textContent = fmtFull(c.takeHome * 12) + '/yr in your bank account';
+
+      // Waterfall
+      const steps = [
+        { label: 'Your take-home', amount: c.takeHome, cls: 'wf-start' },
+        { label: 'Personal income tax', pct: pct('incomeTax'), amount: c.personalTaxAmt, cls: 'wf-add' },
+        { label: 'Monthly overhead', amount: c.overhead, cls: 'wf-add' },
+        { label: 'Investor share (' + pct('investor') + '% equity)', amount: c.investorAmt, cls: 'wf-add' },
+        { label: 'Corporate tax', pct: pct('corpTax'), amount: c.corpTaxAmt, cls: 'wf-add' },
+        { label: 'Payment gateway fee', pct: pct('gateway'), amount: c.gatewayAmt, cls: 'wf-add' },
+        { label: 'GST', pct: pct('gst'), amount: c.gstAmt, cls: 'wf-add' },
+        { label: 'Customer pays (incl. GST)', amount: c.grossRevenue, cls: 'wf-total' },
+      ];
+
+      waterfallRows.innerHTML = '';
+      steps.forEach(s => {
+        const row = document.createElement('div');
+        row.className = 'wf-row ' + s.cls;
+
+        const label = document.createElement('div');
+        label.className = 'wf-label';
+        label.innerHTML = s.label + (s.pct !== undefined ? ' <span class="wf-pct">(' + s.pct + '%)</span>' : '');
+
+        const amount = document.createElement('div');
+        amount.className = 'wf-amount';
+        const prefix = s.cls === 'wf-add' ? '+' : '';
+        amount.textContent = prefix + fmtFull(s.amount) + '/mo';
+
+        row.appendChild(label);
+        row.appendChild(amount);
+        waterfallRows.appendChild(row);
+      });
+
+      // Gross numbers
+      grossMonthly.textContent = fmtFull(c.grossRevenue) + '/mo';
+      grossAnnual.textContent = fmtFull(c.grossRevenue * 12) + '/yr';
+
+      // Table title uses annual gross
+      const annualGross = Math.round(c.grossRevenue * 12);
+      tableTitle.innerHTML = 'How to make <em>' + fmtFull(annualGross) + '</em> w/ subscriptions';
+
+      // Breakdown rows - use gross revenue (what customer pays incl GST)
+      const annualCustomerPays = c.grossRevenue * 12;
+      const tiers = PEOPLE_TIERS.filter(p => {
+        const mo = annualCustomerPays / p / 12;
+        return mo >= 0.5 && mo <= 50000;
+      }).slice(0, 8);
+
+      rowsEl.innerHTML = '';
+      tiers.forEach(people => {
+        const monthlyCharge = annualCustomerPays / people / 12;
+
+        const row = document.createElement('div');
+        row.className = 'breakdown-row';
+
+        const left = document.createElement('div');
+        left.className = 'people';
+        left.innerHTML = '<strong>' + people.toLocaleString('en-US') + '</strong> people pay you';
+
+        const right = document.createElement('div');
+        right.className = 'charge';
+        right.textContent = fmtPrice(monthlyCharge) + '/month for 1 year';
+
+        row.appendChild(left);
+        row.appendChild(right);
+        rowsEl.appendChild(row);
+      });
+    }
+
+    // Event listeners
+    goalInput.addEventListener('input', update);
+    goalInput.addEventListener('focus', () => {
+      const raw = goalInput.value.replace(/[^0-9.]/g, '');
+      const val = parseFloat(raw);
+      goalInput.value = val > 0 ? val : '';
+    });
+    goalInput.addEventListener('blur', () => {
+      const raw = goalInput.value.replace(/[^0-9.]/g, '');
+      const val = parseFloat(raw);
+      goalInput.value = val > 0 ? formatInputNumber(val) : formatInputNumber(10000);
+    });
+
+    Object.values(inputs).forEach(inp => inp.addEventListener('input', update));
+
+    update();
+  </script>
+</body>
+</html>
