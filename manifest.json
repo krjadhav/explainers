@@ -1,5 +1,16 @@
 [
   {
+    "title": "India SaaS Revenue Calculator",
+    "description": "Figure out what you need to charge for subscriptions to hit your take-home goal as a founder in India, after taxes, GST, gateway fees, and investor cuts.",
+    "tags": [
+      "SaaS",
+      "Revenue",
+      "India",
+      "Startups"
+    ],
+    "path": "revenue-calculator"
+  },
+  {
     "title": "Why You Need 50\u2013100 Bets to Make Money in Venture",
     "description": "The power-law math behind venture portfolio construction. Tweak every parameter and watch the simulation update live.",
     "tags": [
